@@ -1,0 +1,104 @@
+{% extends 'homepage/base.html' %}
+
+{% block content %}
+<div class="ml-10 mt-8">
+    <h1 class="text-xl font-bold">{{ object.jenis }}</h1>
+</div>
+
+<div class="py-12">
+    <div class="container mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="mb-6 md:mb-0">
+                <div class="text-block text-justify">
+                    <h3 class="text-2xl font-bold mb-4">Ayo, Bangun Istana Di Surga</h3>
+                    <p>
+                    Rasulullah SAW bersabda : Siapa yang membangun masjid karena
+                    mengharapkan ridha Allah, maka Allah akan membangun untuknya yang
+                    seperti itu di surga. (Hadits Riwayat Bukhori : 431)
+                    </p>
+                    <p>
+                    Salurkan wakaf/infak/sedekah Anda untuk pembangunan masjid
+                    melalui : <br />BANK ...<br />No. Rekening : ...<br />A.N : ...
+                    </p>
+                    <p>Informasi Lebih Lanjut Hubungi : Pak Haji</p>
+                    <p>
+                    Semoga Allah SWT senantiasa merahmati setiap langkah kita.
+                    </p>
+                </div>
+            </div>
+            <div class="">
+                <h5 class="text-lg font-semibold mb-4">Formulir Konfirmasi Donasi</h5>
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <form method="post">
+                            <input type="hidden" name="process" value="save" />
+                            <div class="form-control">
+                            <input
+                                type="text"
+                                name="name"
+                                id="name"
+                                placeholder="Nama Lengkap"
+                                class="input input-bordered  w-full"
+                                style="width: 100%"
+                                required
+                            />
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="form-control">
+                            <input
+                            type="text"
+                            name="phone"
+                            id="phone"
+                            placeholder="No. Telepon"
+                            class="input input-bordered"
+                            required
+                            />
+                            </div>
+                            <div class="form-control">
+                            <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            placeholder="Email"
+                            class="input input-bordered"
+                            required
+                            />
+                            </div>
+                            </div>
+                            <div class="form-control mt-4">
+                            <input
+                            type="number"
+                            name="value"
+                            id="value"
+                            placeholder="Nilai Donasi"
+                            class="input input-bordered  w-full"
+                            style="width: 100%"
+                            required
+                            />
+                            </div>
+                            <div class="form-control mt-4">
+                            <input
+                            type="text"
+                            name="note"
+                            id="note"
+                            placeholder="Catatan"
+                            class="input input-bordered  w-full"
+                            style="width: 100%"
+                            />
+                            </div>
+                            <div class="mt-6">
+                            <input
+                            type="submit"
+                            class="btn btn-primary w-full"
+                            value="Bismillah Donasi"
+                            onclick="return confirm('Apakah Anda yakin telah memberikan donasi kepada kami ?');"
+                            />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

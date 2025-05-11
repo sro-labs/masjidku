@@ -1,0 +1,6 @@
+.venv
+__pycache__
+mysite/db.sqlite3
+mysite/masjidku/static
+mysite/static
+mysite/media

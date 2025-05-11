@@ -1,0 +1,29 @@
+
+{% extends 'homepage/base.html' %}
+
+{% block content %}
+<div class="ml-10 mt-8">
+    <h1 class="text-xl font-bold">{{ object.jenis }}</h1>
+</div>
+
+<div class="container mx-auto px-4 mt-8">
+    {% if object.foto %}
+    <div class="mb-8">
+        <img
+            src="{{ object.foto.url }}"
+            class="w-2/4 mx-auto rounded-lg shadow-md"
+        />
+    </div>
+    {% endif %}
+    <div class="mt-8">
+        <h1 class="text-3xl font-bold mb-4">{{ object.judul }}</h1>
+        <div>
+            <p>
+                {{ object.konten | safe }}
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+

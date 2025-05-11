@@ -1,0 +1,186 @@
+{% extends 'admin/base.html' %}
+
+{% load i18n unfold %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block title %}
+    {% trans 'Dashboard' %} | {{ site_title|default:_('Django site admin') }}
+{% endblock %}
+
+{% block extrahead %}
+    {% if plausible_domain %}
+        <script defer data-domain="{{ plausible_domain }}" src="https://plausible.io/js/script.js"></script>
+    {% endif %}
+{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+    {% include "unfold/helpers/messages.html" %}
+
+    {% component "unfold/components/container.html" %}
+        <div class="flex flex-col gap-8 mb-12">
+            <div class="flex flex-col gap-4 sm:flex-row">
+                {% component "unfold/components/navigation.html" with items=navigation %}{% endcomponent %}
+
+                {% component "unfold/components/navigation.html" with class="sm:ml-auto" items=filters %}{% endcomponent %}
+            </div>
+            
+            <!-- <div id="all-laporan"> -->
+                <!-- Alert section -->
+                <p id="dashboard_filter_err" style="display: none" class="errornote bg-red-100 mb-2 text-red-700 px-3 py-3 rounded-default dark:bg-red-500/20 dark:border-red-500/20 dark:text-red-400">
+                    Silakan lengkapi pilihan Tahun dan Bulan yang akan dicari!
+                </p>
+
+                <div class="font-semibold text-2xl text-font-important-light tracking-tight dark:text-font-important-dark">
+                    Laporan Keuangan
+                </div>
+
+                <!-- Start Filter section -->
+                <div class="flex flex-col gap-8 lg:flex-row">
+
+                    <h1 class="bg-gray-50 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" style="width: 200px; margin-top: 10px">Periode </h1>
+                    <select id="periode_tahun" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onchange="hide_alert()">
+                        <option value="-1" selected>-- Pilih --</option>
+                        {% for year in YEAR_CHOICES %}
+                            {% if year == PERIODE_FILTER.tahun %}
+                            <option value="{{ year }}" selected>{{ year }}</option>
+                            {% else %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <select id="periode_bulan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-80 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onchange="hide_alert()">
+                    <option value="-1" selected>-- Pilih --</option>
+                        {% for k,v in MONTH_CHOICES.items %}
+                        {% if k == PERIODE_FILTER.bulan %}
+                        <option value="{{ k }}" selected>{{ v }}</option>
+                        {% else %}
+                        <option value="{{ k }}">{{ v }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    {% component "unfold/components/button.html" with attrs=BUTTON_CARI %}
+                        Cari
+                    {% endcomponent %}
+                    <!-- 
+                    <button class="border font-medium flex items-center gap-2 px-3 py-2 rounded text-center whitespace-nowrap  bg-primary-600 border-transparent text-white" onclick="download_section('content')">Download
+                    </button>
+                    -->
+                </div>
+                <!-- End Filter section -->
+
+                <!-- Start Summary section -->
+                <div class="flex flex-col gap-8 lg:flex-row">
+                    {% for stats in kpi %}
+                        {% component "unfold/components/card.html" with class="lg:w-1/3" footer=stats.footer %}
+                            {% component "unfold/components/text.html" %}
+                                {{ stats.title }}
+                            {% endcomponent %}
+
+                            {% component "unfold/components/title.html" %}
+                                {{ stats.metric }}
+                            {% endcomponent %}
+                        {% endcomponent %}
+                    {% endfor %}
+                </div>
+                <!-- End Summary section -->
+
+                <!-- Start Laporan Per Buku Kas section -->
+                {% for kas in laporan %}
+                <input type="hidden" id="kas_name" value="{{kas.buku_kas}}">
+                <div class="flex flex-col gap-8 lg:flex-row" id="kas_{{kas.id}}">
+                    {% component "unfold/components/card.html" with title=kas.buku %}
+                        {% component "unfold/components/table.html" with table=kas.table_data card_included=1 striped=1 %}{% endcomponent %}
+                        <div class="mb-12"></div>
+                        {% component "unfold/components/table.html" with table=kas.table_summary card_included=1 striped=0 %}{% endcomponent %}
+                    {% endcomponent %}
+                </div>
+                {% endfor %}
+                <!-- End Laporan Per Buku Kas section -->
+
+            <!-- </div> -->
+        </div>
+    {% endcomponent %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+    function hide_alert() {
+        dashboard_filter_err.style = "display: none";
+        return;
+    }
+
+    function apply_filter() {
+        var periode_tahun = document.getElementById("periode_tahun").value;
+        var periode_bulan = document.getElementById("periode_bulan").value;
+
+        if (periode_bulan == -1 || periode_bulan == -1) {
+            console.log(dashboard_filter_err);
+            dashboard_filter_err.style = "display: block";
+            return;
+        }
+        window.location = `?tahun=${periode_tahun}&bulan=${periode_bulan}`;
+    }
+    
+    function download_section(sectionid) {
+        var btn = document.getElementById(`btn_${sectionid}`);
+        if (btn) {
+            btn.style = "display: none; float: right;"
+        }
+
+        var periode_tahun = document.getElementById("periode_tahun").value;
+        var periode_bulan_select = document.getElementById("periode_bulan");
+        var periode_bulan = periode_bulan_select.value;
+        var buku_kas_element = document.getElementById("kas_name");
+        var buku = buku_kas_element ? buku_kas_element.value : 'Laporan'; // Default to 'Laporan' if element not found
+        var section = document.getElementById(sectionid);
+
+        html2canvas(section).then(function(canvas) {
+            var imgData = canvas.toDataURL('image/png');
+            var pdf = new jsPDF('p', 'pt', 'a4');
+            var margin = 10; // Margin in points
+            var pdfWidth = pdf.internal.pageSize.getWidth();
+            var pdfHeight = pdf.internal.pageSize.getHeight();
+            var imgWidth = pdfWidth - 2 * margin;
+            var imgHeight = canvas.height * imgWidth / canvas.width;
+            var heightLeft = imgHeight;
+            var position = margin; // Start position after top margin
+
+            pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+            heightLeft -= (pdfHeight - 2 * margin);
+
+            while (heightLeft >= 0) {
+                pdf.addPage();
+                // Recalculate position for the new page, starting from the top margin
+                // The image is placed at the top of the new page with the top margin
+                // The portion of the image displayed is determined by the remaining heightLeft
+                // and the available page height minus top and bottom margins.
+                position = margin + (imgHeight - heightLeft); 
+                pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            // Get month name for filename
+            const monthNames = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                                "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            const monthName = monthNames[parseInt(periode_bulan)];
+
+            var output = `Laporan_${buku}_${periode_tahun}-${monthName}.pdf`;
+            pdf.save(output);
+        })
+        .catch(function(error) {
+            console.error('Error generating PDF:', error);
+        });
+        if (btn) {
+            btn.style = "display: block; float: right;"
+        }
+    }
+</script>
+
+
+{% endblock %}
