@@ -120,6 +120,12 @@ class JamaahAdmin(ModelAdmin, ImportExportModelAdmin):
         ("Detail", {"fields": ["tempat_lahir", "tanggal_lahir", "url_foto"], "classes": ["collapse"]}),
     ]
     list_display = ["nama", "jenis_kelamin", "jenis_jamaah", "golongan_darah"]
+    list_filter_submit = True  # Submit button at the bottom of the filter
+    list_filter = (
+        ("jenis_jamaah"),
+        ("jenis_kelamin"),
+        ("golongan_darah"),
+    )
 
     def delete_model(self, request, obj):
         if obj.url_foto:
@@ -145,6 +151,7 @@ class HalamanAdmin(ModelAdmin):
         (None, {"fields": ["foto"]}),
     ]
     list_display = ["jenis", "judul", "tanggal", "pembuat", "terpublikasi"]
+    list_filter_submit = True  # Submit button at the bottom of the filter
     list_filter = (
         ("jenis", AllValuesCheckboxFilter),
         ("tanggal", RangeDateFilter),  # Date filter
@@ -227,6 +234,11 @@ class DonasiAdmin(ModelAdmin):
         (None, {"fields": ["is_confirm"]}),
     ]
     list_display = ["tanggal", "nama", "no_telp", "nilai", "terkonfirmasi"]
+    list_filter_submit = True  # Submit button at the bottom of the filter
+    list_filter = (
+        ("tanggal", RangeDateFilter),  # Date filter
+        ("is_confirm"),
+    )
 
     @admin.display(description=_("Terkonfirmasi"))
     def terkonfirmasi(self, obj):

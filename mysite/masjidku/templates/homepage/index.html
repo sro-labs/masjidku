@@ -53,10 +53,10 @@
                         <a href="#slide{{ forloop.counter |add:1 }}" class="btn btn-circle">❯</a>
                     {% endif %}
                 {% endif %}
-
-
             </div>
         </div>
+    {% empty %}
+        <p class="ml-10">Gallery belum tersedia</p>
     {% endfor %}
 {% endblock galeri %}
 

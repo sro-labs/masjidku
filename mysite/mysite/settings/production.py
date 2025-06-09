@@ -20,3 +20,23 @@ CSRF_TRUSTED_ORIGINS = [
     'https://9000-idx-masjidku-1745924443148.cluster-bg6uurscprhn6qxr6xwtrhvkf6.cloudworkstations.dev'
 ]
 
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True
+
+
+STATIC_ROOT = '/home/user/masjidku/mysite/static/'
+
+MASJIDKU = {
+    "web_title": "Masjid Al Muhajirin",
+    "footer": {
+        "nama": "Masjid Al Muhajirin",
+        "alamat": "Kav. Blok C - Jl. Pesut No.5, RT.8/RW.3 Cilegon Banten"
+    },
+    "social": {
+        "twitter": "#",
+        "youtube": "#",
+        "instagram": "#",
+    }
+}

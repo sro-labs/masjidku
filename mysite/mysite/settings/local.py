@@ -39,3 +39,17 @@ LOGGING = {
     },
 }
 
+STATIC_ROOT = '/home/user/masjidku/mysite/static/'
+
+MASJIDKU = {
+    "web_title": "Masjid Al Muhajirin",
+    "footer": {
+        "nama": "Masjid Al Muhajirin",
+        "alamat": "Kav. Blok C - Jl. Pesut No.5, RT.8/RW.3 Cilegon Banten"
+    },
+    "social": {
+        "twitter": "#",
+        "youtube": "#",
+        "instagram": "#",
+    }
+}
