@@ -1,0 +1,16 @@
+{% extends 'homepage/base.html' %}
+
+{% block content %}
+<div class="ml-10 mt-8">
+    <h1 class="text-xl font-bold">Sejarah</h1>
+</div>
+
+<div class="ml-10 mt-8">
+    <div>
+        <h1 class="text-3xl font-bold mt-3">{{ artikel.judul }}</h1>
+        <p>
+            {{ artikel.konten | safe }}
+        </p>
+    </div>
+</div>
+{% endblock content %}

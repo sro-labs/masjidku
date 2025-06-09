@@ -1,0 +1,100 @@
+{% extends 'homepage/base.html' %}
+
+{% block program %}
+    {% for item in program %}
+    <div class="card bg-base-100 w-96 shadow-sm">
+        <figure>
+            <img
+            src="{{item.foto.url}}"/>
+        </figure>
+        <div class="card-body">
+            <h2 class="card-title">{{item.judul}}</h2>
+        </div>
+    </div>
+    {% endfor %}
+{% endblock program %}
+
+{% block berita %}
+    {% for item in berita %}
+        <div class="card bg-base-100 w-96 shadow-sm">
+            <figure>
+                <img
+                src="{{item.foto.url}}"/>
+            </figure>
+            <div class="card-body">
+                <h2 class="card-title">{{item.judul}}</h2>
+                <!-- <p>{{ item.konten | slice:":50" | safe }}</p> -->
+                <div class="card-actions justify-end">
+                    <a href="{{ item.get_absolute_url }}" class="btn btn-ghost text-xs">Baca Selengkapnya</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>Berita belum tersedia</p>
+    {% endfor %}
+{% endblock berita %}
+
+{% block galeri %}
+    {% for item in galeri %}
+        <div id="slide{{ forloop.counter }}" class="carousel-item relative w-full">
+            <img
+                src="{{item.foto.url}}"
+                class="w-full" />
+            <div class="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                {% if forloop.counter == 1  %}
+                    <a href="#slide{{ galeri | length }}" class="btn btn-circle">❮</a>
+                    <a href="#slide{{ forloop.counter |add:1 }}" class="btn btn-circle">❯</a>
+                {% else %}
+                    {% if forloop.last %}
+                        <a href="#slide{{ forloop.counter0 }}" class="btn btn-circle">❮</a>
+                        <a href="#slide1" class="btn btn-circle">❯</a>
+                    {% else %}
+                        <a href="#slide{{ forloop.counter0 }}" class="btn btn-circle">❮</a>
+                        <a href="#slide{{ forloop.counter |add:1 }}" class="btn btn-circle">❯</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p class="ml-10">Gallery belum tersedia</p>
+    {% endfor %}
+{% endblock galeri %}
+
+{% block artikel %}
+    {% for item in artikel %}
+    <div class="card bg-base-100 w-96 shadow-sm">
+        <figure>
+            <img
+            src="{{item.foto.url}}"
+            alt="Shoes" />
+        </figure>
+        <div class="card-body">
+            <h2 class="card-title">{{item.judul}}</h2>
+            <!-- <p>{{ item.konten | slice:":50" | safe }}</p> -->
+            <div class="card-actions justify-end">
+                <a href="{{ item.get_absolute_url }}" class="btn btn-ghost text-xs">Baca Selengkapnya</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <p>Artikel belum tersedia</p>
+    {% endfor %}
+{% endblock artikel %}
+
+{% block donasi %}
+<div class="hero bg-base-200 p-10">
+    <div class="hero-content flex-col lg:flex-row">
+    <img
+        src="{{donasi.foto.url}}"
+        class="max-w-sm rounded-lg shadow-2xl"
+    />
+    <div>
+        <h1 class="text-5xl font-bold">{{donasi.judul}}</h1>
+        <p>
+        {{donasi.konten | safe}}
+        </p>
+    </div>
+    </div>
+</div>
+{% endblock donasi %}
+
