@@ -26,12 +26,18 @@
                     </p>
                 </div>
             </div>
-            <div class="">
+            <div class="text-center">
+                {% if success == True %}
+                    <div class="badge badge-soft badge-success">Terima kasih atas donasi yang diberikan</div>
+                {% endif %}
+                {% if success == False %}
+                    <div class="badge badge-soft badge-warning">Mohon maaf terjadi kegagal saat membuat konfirmasi donasi, silakan coba kembali.</div>
+                {% endif %}
                 <h5 class="text-lg font-semibold mb-4">Formulir Konfirmasi Donasi</h5>
                 <div class="card bg-base-100 shadow-xl">
                     <div class="card-body">
-                        <form method="post">
-                            <input type="hidden" name="process" value="save" />
+                        <form id="frm-konfirmasi" method="post">
+                            {% csrf_token %}
                             <div class="form-control">
                             <input
                                 type="text"
@@ -91,7 +97,6 @@
                             type="submit"
                             class="btn btn-primary w-full"
                             value="Bismillah Donasi"
-                            onclick="return confirm('Apakah Anda yakin telah memberikan donasi kepada kami ?');"
                             />
                             </div>
                         </form>
@@ -101,4 +106,26 @@
         </div>
     </div>
 </div>
+
+<!-- Open the modal using ID.showModal() method -->
+<dialog id="my_modal_1" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Konfirmasi</h3>
+    <p class="py-4">Apakah kamu sudah yakin data sudah benar ?</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <!-- if there is a button in form, it will close the modal -->
+        <button class="btn btn-primary" onclick="submitForm()">Kirim</button>
+        <button class="btn">Tutup</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<script>
+    function submitForm() {
+        var form = document.getElementById('frm-konfirmasi');
+        form.submit();
+    }
+</script>
 {% endblock content %}

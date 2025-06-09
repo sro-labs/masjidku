@@ -72,7 +72,7 @@
 			<li><a href="/berita">Berita</a></li>
 			<li><a href="/artikel">Artikel</a></li>
 			<li><a href="/konfirmasi-donasi">Donasi</a></li>
-			<li><a>Laporan</a></li>
+			<li><a href="/laporan">Laporan</a></li>
 	      </ul>
 	    </div>
 	    
@@ -107,7 +107,7 @@
 		  <li><a href="/berita">Berita</a></li>
 		  <li><a href="/artikel">Artikel</a></li>
 	      <li><a href="/konfirmasi-donasi">Donasi</a></li>
-	      <li><a>Laporan</a></li>
+	      <li><a href="/laporan">Laporan</a></li>
 	    </ul>
 	  </div>
 	  <div class="navbar-end">
@@ -238,10 +238,34 @@
 
 
 	<script>
-	// Remove all extra htmx headers, re-add content-type.
-	document.body.addEventListener('htmx:configRequest', function(event) {
-	    event.detail.headers['Refere'] = "no-referrer"
-	});
+		// Remove all extra htmx headers, re-add content-type.
+		document.body.addEventListener('htmx:configRequest', function(event) {
+			event.detail.headers['Refere'] = "no-referrer"
+		});
+
+		document.addEventListener('DOMContentLoaded', function() {
+			const menuItemsWithDropdown = document.querySelectorAll('.menu-horizontal > li details'); // Select the details elements
+			menuItemsWithDropdown.forEach(detailsElement => {
+				let enterTimer;
+				let leaveTimer;
+			
+				detailsElement.parentElement.addEventListener('mouseenter', () => { // Listen on the parent li
+					clearTimeout(leaveTimer);
+					enterTimer = setTimeout(() => {
+					detailsElement.setAttribute('open', ''); // Open the details element
+					// You might need to add/remove DaisyUI specific classes here as well
+					}, 200); // Small delay
+				});
+			
+				detailsElement.parentElement.addEventListener('mouseleave', () => { // Listen on the parent li
+					clearTimeout(enterTimer);
+					leaveTimer = setTimeout(() => {
+					detailsElement.removeAttribute('open'); // Close the details element
+					// You might need to add/remove DaisyUI specific classes here as well
+					}, 200); // Small delay
+				});
+			});
+		});
 	</script>
 
 </body>

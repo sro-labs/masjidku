@@ -1,3 +1,5 @@
+import logging
+
 from django.utils.translation import gettext_lazy as _
 from django.contrib import admin
 from django.db import models
@@ -12,7 +14,8 @@ from unfold.contrib.forms.widgets import WysiwygWidget
 
 
 # Register your models here.
-from .models import Buku, KategoriTransaksi, SaldoBulan, Transaksi, TransaksiPemasukan, TransaksiPengeluaran, Jamaah, Page
+from .models import Buku, KategoriTransaksi, SaldoBulan, SaldoMingguan, Transaksi, TransaksiPemasukan, TransaksiPengeluaran, Jamaah, Page, Galeri, Laporan, Donasi
+from masjidku.usecase.laporan import recalculate_pemasukan, recalculate_pengeluaran
 
 
 class BukuKasAdmin(ModelAdmin):
@@ -23,6 +26,11 @@ class BukuKasAdmin(ModelAdmin):
 class SaldoBulanAdmin(ModelAdmin):
     list_display = ["tahun", "bulan", "id_buku", "saldo_awal"]
     list_filter = ("tahun", "bulan", "id_buku")
+
+
+class SaldoMingguanAdmin(ModelAdmin):
+    list_display = ["tanggal_jumat", "id_buku", "saldo_awal"]
+    list_filter = ("tanggal_jumat", "id_buku")
 
 
 class KategoriTransaksiAdmin(ModelAdmin):
@@ -60,6 +68,18 @@ class TransaksiAdmin(ModelAdmin):
 class TransaksiPemasukanAdmin(TransaksiAdmin, ImportExportModelAdmin):
     export_form_class = ExportForm
 
+    def delete_model(self, request, obj):
+        logging.info('delete_model is being called.')
+        update_list = [ (obj.id_buku.pk, obj.tanggal.year, obj.tanggal.month, obj.jumlah, obj.tanggal.date()) ]
+        super().delete_model(request, obj)
+        recalculate_pemasukan(update_list)
+
+    def delete_queryset(self, request, obj):
+        logging.info('delete_queryset is being called.')
+        update_list = [ (o.id_buku.pk, o.tanggal.year, o.tanggal.month, o.jumlah, o.tanggal.date()) for o in obj ]
+        super().delete_model(request, obj)
+        recalculate_pemasukan(update_list)
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.filter(id_kategori__jenis='Pemasukan')
@@ -67,10 +87,22 @@ class TransaksiPemasukanAdmin(TransaksiAdmin, ImportExportModelAdmin):
     
     def get_fieldsets(self, request, obj=None):
         return super().get_fieldsets(request, obj)
- 
+
 
 class TransaksiPengeluaranAdmin(TransaksiAdmin, ImportExportModelAdmin):
     export_form_class = ExportForm
+
+    def delete_model(self, request, obj):
+        logging.info('delete_model is being called.')
+        update_list = [ (obj.id_buku.pk, obj.tanggal.year, obj.tanggal.month, obj.jumlah, obj.tanggal.date()) ]
+        super().delete_model(request, obj)
+        recalculate_pengeluaran(update_list)
+
+    def delete_queryset(self, request, obj):
+        logging.info('delete_queryset is being called.')
+        update_list = [ (o.id_buku.pk, o.tanggal.year, o.tanggal.month, o.jumlah, o.tanggal.date()) for o in obj ]
+        super().delete_model(request, obj)
+        recalculate_pengeluaran(update_list)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -89,6 +121,18 @@ class JamaahAdmin(ModelAdmin, ImportExportModelAdmin):
     ]
     list_display = ["nama", "jenis_kelamin", "jenis_jamaah", "golongan_darah"]
 
+    def delete_model(self, request, obj):
+        if obj.url_foto:
+            obj.url_foto.delete(save=False)
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, obj):
+        for o in obj:
+            if o.url_foto:
+                o.url_foto.delete(save=False)
+        super().delete_model(request, obj)
+
+
 
 class HalamanAdmin(ModelAdmin):
     formfield_overrides = {
@@ -96,13 +140,97 @@ class HalamanAdmin(ModelAdmin):
             "widget": WysiwygWidget,
         }
     }
-    list_display = ["jenis", "judul", "tanggal", "pembuat"]
+    fieldsets = [
+        (None, {"fields": ["judul", "jenis", "pembuat", "konten", "is_published"]}),
+        (None, {"fields": ["foto"]}),
+    ]
+    list_display = ["jenis", "judul", "tanggal", "pembuat", "terpublikasi"]
     list_filter = (
         ("jenis", AllValuesCheckboxFilter),
         ("tanggal", RangeDateFilter),  # Date filter
         ("pembuat"),
     )
 
+    def delete_model(self, request, obj):
+        if obj.foto:
+            obj.foto.delete(save=False)
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, obj):
+        for o in obj:
+            if o.foto:
+                o.foto.delete(save=False)
+        super().delete_model(request, obj)
+
+
+class GalleryAdmin(ModelAdmin):
+    formfield_overrides = {
+        models.TextField: {
+            "widget": WysiwygWidget,
+        }
+    }
+    fieldsets = [
+        (None, {"fields": ["judul", "is_published"]}),
+        (None, {"fields": ["foto"]}),
+    ]
+    list_display = ["tanggal", "foto", "judul", "terpublikasi"]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.filter(jenis='Galeri')
+        return queryset
+
+    def save_model(self, request, obj, form, change):
+        obj.jenis = 'Galeri'
+        obj.pembuat = request.user.username
+        super().save_model(request, obj, form, change)
+
+    def delete_model(self, request, obj):
+        if obj.foto:
+            obj.foto.delete(save=False)
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, obj):
+        for o in obj:
+            if o.foto:
+                o.foto.delete(save=False)
+        super().delete_model(request, obj)
+
+
+class LaporanAdmin(ModelAdmin):
+    formfield_overrides = {
+        models.TextField: {
+            "widget": WysiwygWidget,
+        }
+    }
+    fieldsets = [
+        (None, {"fields": ["judul", "is_published"]}),
+        (None, {"fields": ["foto"]}),
+    ]
+    list_display = ["tanggal", "foto", "judul", "terpublikasi"]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.filter(jenis='Laporan')
+        return queryset
+
+    def save_model(self, request, obj, form, change):
+        obj.jenis = 'Laporan'
+        obj.pembuat = request.user.username
+        super().save_model(request, obj, form, change)
+
+
+class DonasiAdmin(ModelAdmin):
+    readonly_fields = ["tanggal", "nama", "no_telp", "email", "nilai", "keterangan"]
+    fieldsets = [
+        ("Apakah donasi berikut sudah diterima ?", {"fields": ["tanggal", "nama", "no_telp", "email", "nilai", "keterangan"]}),
+        (None, {"fields": ["is_confirm"]}),
+    ]
+    list_display = ["tanggal", "nama", "no_telp", "nilai", "terkonfirmasi"]
+
+    @admin.display(description=_("Terkonfirmasi"))
+    def terkonfirmasi(self, obj):
+        return 'Ya' if obj.is_confirm else 'Belum' 
 
 
 admin.site.register(Buku, BukuKasAdmin)
@@ -111,5 +239,9 @@ admin.site.register(KategoriTransaksi, KategoriTransaksiAdmin)
 admin.site.register(TransaksiPemasukan, TransaksiPemasukanAdmin)
 admin.site.register(TransaksiPengeluaran, TransaksiPengeluaranAdmin)
 admin.site.register(SaldoBulan, SaldoBulanAdmin)
+admin.site.register(SaldoMingguan, SaldoMingguanAdmin)
 admin.site.register(Page, HalamanAdmin)
+admin.site.register(Galeri, GalleryAdmin)
+admin.site.register(Laporan, LaporanAdmin)
+admin.site.register(Donasi, DonasiAdmin)
 

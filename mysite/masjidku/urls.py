@@ -10,6 +10,7 @@ urlpatterns = [
     # path("laporan/download", views.download_section, name="download"),
     path("berita", views.BeritaListView.as_view(), name="berita_list"),
     path("artikel", views.ArtikelListView.as_view(), name="artikel_list"),
+    path("laporan", views.LaporanListView.as_view(), name="laporan_list"),
     path("<slug:slug>", views.PageDetailView.as_view(), name="page_view"),
 ]
 

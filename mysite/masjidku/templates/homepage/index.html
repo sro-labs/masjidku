@@ -29,6 +29,8 @@
                 </div>
             </div>
         </div>
+    {% empty %}
+        <p>Berita belum tersedia</p>
     {% endfor %}
 {% endblock berita %}
 
@@ -74,6 +76,8 @@
             </div>
         </div>
     </div>
+    {% empty %}
+        <p>Artikel belum tersedia</p>
     {% endfor %}
 {% endblock artikel %}
 

@@ -1,8 +1,11 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import models
+# from django.db.models.signals import pre_save
+# from django.dispatch import receiver
 from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
+
 
 # Create your models here.
 JENIS_TRANSAKSI = (
@@ -53,7 +56,6 @@ class Buku(models.Model):
 
     def get_absolute_url(self):
         return reverse("Buku_detail", kwargs={"pk": self.pk})
-
 
 
 class KategoriTransaksi(models.Model):
@@ -124,6 +126,49 @@ class SaldoBulan(models.Model):
         return self.saldo_awal + (total_pemasukan - total_pengeluaran)
 
 
+class SaldoMingguan(models.Model):
+    tanggal_jumat = models.DateField()
+    id_buku = models.ForeignKey("masjidku.Buku", verbose_name=("Buku Kas"), on_delete=models.CASCADE, null=True)
+    saldo_awal_minggu = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.tanggal_jumat} Saldo Awal: {self.saldo_awal_minggu}"
+
+    @classmethod
+    def update_saldo(cls, buku, tanggal):
+        # Find the Friday of the week for the given date
+        days_until_friday = (4 - tanggal.weekday() + 7) % 7
+        tanggal_jumat = tanggal + timedelta(days=days_until_friday)
+
+        # Calculate saldo awal for the week
+        saldo_minggu_sebelumnya = cls.objects.filter(id_buku=buku, tanggal_jumat__lt=tanggal_jumat).order_by('-tanggal_jumat').first()
+        saldo_awal = saldo_minggu_sebelumnya.saldo_akhir_minggu if saldo_minggu_sebelumnya else 0
+
+        # Create or update saldo mingguan
+        bukuObj = Buku.objects.get(pk=buku)
+        saldo_mingguan, created = cls.objects.update_or_create(
+            id_buku=bukuObj, tanggal_jumat=tanggal_jumat, defaults={'saldo_awal_minggu': saldo_awal}
+        )
+        if not created:
+            saldo_mingguan.saldo_awal_minggu = saldo_awal
+            saldo_mingguan.save()
+        return saldo_mingguan
+
+    @property
+    def saldo_akhir_minggu(self):
+        """Menghitung dan mengembalikan saldo akhir minggu."""
+        tanggal_awal_minggu = self.tanggal_jumat - timedelta(days=6)
+        tanggal_akhir_minggu = self.tanggal_jumat + timedelta(days=1) # Include Friday's transactions
+        pemasukan = TransaksiPemasukan.objects.filter(id_buku=self.id_buku, tanggal__gte=tanggal_awal_minggu, tanggal__lt=tanggal_akhir_minggu, id_kategori__jenis='Pemasukan')
+        pengeluaran = TransaksiPengeluaran.objects.filter(id_buku=self.id_buku, tanggal__gte=tanggal_awal_minggu, tanggal__lt=tanggal_akhir_minggu, id_kategori__jenis='Pengeluaran')
+        total_pemasukan = pemasukan.aggregate(Sum('jumlah'))['jumlah__sum'] or 0
+        total_pengeluaran = pengeluaran.aggregate(Sum('jumlah'))['jumlah__sum'] or 0
+        return self.saldo_awal_minggu + (total_pemasukan - total_pengeluaran)
+
+    def saldo_awal(self):
+        return self.saldo_akhir_minggu
+
+
 class Transaksi(models.Model):
     id_buku = models.ForeignKey("masjidku.Buku", verbose_name=("Buku Kas"), on_delete=models.CASCADE)
     tanggal = models.DateTimeField(("Tanggal"), auto_now=False, auto_now_add=False)
@@ -138,9 +183,16 @@ class Transaksi(models.Model):
         return reverse("Transaksi_detail", kwargs={"pk": self.pk})
 
     def save(self, *args, **kwargs):
-        # get buku kas model
-        # update saldo_akhir
         kas = Buku.objects.get(pk=self.id_buku.pk)
+        if self.pk:
+            old_instance = Transaksi.objects.get(pk=self.pk)
+            if self.id_kategori.jenis == "Pemasukan":
+                kas.saldo_akhir -= old_instance.jumlah
+            else:
+                kas.saldo_akhir += old_instance.jumlah
+            kas.save()
+
+        # update saldo_akhir
         if self.id_kategori.jenis == "Pemasukan":
             kas.saldo_akhir += self.jumlah
         else:
@@ -148,6 +200,7 @@ class Transaksi(models.Model):
         kas.save()
         super(Transaksi, self).save(*args, **kwargs)
         SaldoBulan.update_saldo(self.id_buku.pk, self.tanggal.year, self.tanggal.month)
+        SaldoMingguan.update_saldo(self.id_buku.pk, self.tanggal.date())
 
 
 class TransaksiPemasukan(Transaksi):
@@ -191,5 +244,20 @@ class Jamaah(models.Model):
 
     def get_absolute_url(self):
         return reverse("Jamaah_detail", kwargs={"pk": self.pk})
+
+
+
+# @receiver(pre_save, sender=Transaksi)
+# def transaksi_pre_save(sender, instance, **kwargs):
+#     if instance.pk:
+#         logging.info('Signal transaksi_pre_save is being called!')
+#         old_instance = Transaksi.objects.get(pk=instance.pk)
+
+#         kas = Buku.objects.get(pk=old_instance.id_buku)
+#         if old_instance.id_kategori.jenis == "Pemasukan":
+#             kas.saldo_akhir -= old_instance.jumlah
+#         else:
+#             kas.saldo_akhir += old_instance.jumlah
+#         kas.save()
 
 

@@ -5,11 +5,37 @@ from django.db.models import Sum
 import random, json
 from datetime import datetime, date
 
-from masjidku.models import Buku, TransaksiPemasukan, TransaksiPengeluaran, SaldoBulan
+from masjidku.models import Buku, TransaksiPemasukan, TransaksiPengeluaran, SaldoBulan, SaldoMingguan
 
 
+def recalculate_pemasukan(update_list) -> None:
+    """
+        Kalkulasi ulang buku kas setelah terjadi penghapusan pemasukan 
+    """
+    for o in update_list:
+        kas = Buku.objects.get(pk=o[0])
+        kas.saldo_akhir -= o[3]
+        kas.save()
+        SaldoBulan.update_saldo(o[0], o[1], o[2])
+        SaldoMingguan.update_saldo(o[0], o[4])
 
-def fetch_data(request):
+
+def recalculate_pengeluaran(update_list) -> None:
+    """
+        Kalkulasi ulang buku kas setelah terjadi penghapusan pemasukan 
+    """
+    for o in update_list:
+        kas = Buku.objects.get(pk=o[0])
+        kas.saldo_akhir += o[3]
+        kas.save()
+        SaldoBulan.update_saldo(o[0], o[1], o[2])
+        SaldoMingguan.update_saldo(o[0], o[4])
+
+
+def fetch_data(request) -> dict:
+    """
+        Fetch data untuk laporan keuangan
+    """
     MONTH_CHOICES = {
         1: "Januari",
         2: "Februari",

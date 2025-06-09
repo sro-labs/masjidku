@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -29,19 +29,7 @@ SECRET_KEY = 'django-insecure-^=6-_k)oh!n9-fpcd1qd0rf(!8y2!!8cc*so1if(!*ydv@*_dc
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    '9000-idx-masjidku-1745924443148.cluster-bg6uurscprhn6qxr6xwtrhvkf6.cloudworkstations.dev',
 ]
-
-
-CORS_ALLOWED_ORIGINS = ["*"]
-CORS_ORIGIN_WHITELIST = (
-    '*',
-)
-CSRF_TRUSTED_ORIGINS = [
-    'https://9000-idx-masjidku-1745924443148.cluster-bg6uurscprhn6qxr6xwtrhvkf6.cloudworkstations.dev'
-]
-
 
 
 # Application definition
@@ -153,25 +141,6 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "WARNING",
-    },
-    'loggers': {
-        'django.db.backends': {
-            'level': 'DEBUG',
-        },
-    },
-}
-
 
 CRISPY_TEMPLATE_PACK = "unfold_crispy"
 CRISPY_ALLOWED_TEMPLATE_PACKS = ["unfold_crispy"]
@@ -228,6 +197,16 @@ UNFOLD = {
                         "icon": "article",
                         "link": reverse_lazy("admin:masjidku_page_changelist"),
                     },
+                    {
+                        "title": _("Foto Galeri"),
+                        "icon": "image",
+                        "link": reverse_lazy("admin:masjidku_galeri_changelist"),
+                    },
+                    {
+                        "title": _("Laporan"),
+                        "icon": "dataset",
+                        "link": reverse_lazy("admin:masjidku_laporan_changelist"),
+                    },
                 ],
             },
             {
@@ -245,6 +224,18 @@ UNFOLD = {
                         "icon": "shopping_cart_checkout",
                         "link": reverse_lazy("admin:masjidku_transaksipengeluaran_changelist"),
                         "permission": lambda request: request.user.has_perm("masjidku.view_transaksipengeluaran")
+                    },
+                    {
+                        "title": _("Konfirmasi Donasi"),
+                        "icon": "verified",
+                        "link": reverse_lazy("admin:masjidku_donasi_changelist"),
+                        "permission": lambda request: request.user.has_perm("masjidku.view_donasi")
+                    },
+                    {
+                        "title": _("Saldo Mingguan"),
+                        "icon": "attach_money",
+                        "link": reverse_lazy("admin:masjidku_saldomingguan_changelist"),
+                        "permission": lambda request: request.user.has_perm("masjidku.view_saldomingguan")
                     },
                     {
                         "title": _("Saldo Bulanan"),

@@ -1,0 +1,23 @@
+
+{% extends 'homepage/base.html' %}
+
+{% block content %}
+<div class="ml-10 mt-8">
+    <h1 class="text-xl font-bold">{{ object_list.0.jenis }}</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-10 mt-8 w-full justify-center">
+
+    {% for item in object_list %}
+    <div class="card bg-base-100 w-96 shadow-sm">
+        <div class="card-body">
+                <h2 class="card-title">{{item.judul}}</h2>
+                <div class="card-actions justify-end">
+                    <a href="{{ item.get_absolute_url }}" class="btn btn-ghost text-xs">Unduh</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+</div>
+{% endblock content %}
